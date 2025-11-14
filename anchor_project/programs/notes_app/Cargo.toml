@@ -1,11 +1,11 @@
 [package]
-name = "user_profile"
+name = "notes_app"
 version = "0.1.0"
 edition = "2021"
 
 [lib]
 crate-type = ["cdylib", "lib"]
-name = "user_profile"
+name = "notes_app"
 
 [dependencies]
 anchor-lang = "0.31.1"

@@ -3,7 +3,7 @@ use anchor_lang::prelude::*;
 declare_id!("Fg6PaFpoGXkYsidMpWxTWqgY3vQb3N9v9s4N8dDqVt1J");
 
 #[program]
-pub mod user_profile {
+pub mod notes_app {
     use super::*;
 
     pub fn initialize_profile(
