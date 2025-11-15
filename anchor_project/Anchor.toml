@@ -1,12 +1,15 @@
 [toolchain]
-package_manager = "yarn"
+#package_manager = "yarn"
 
 [features]
 resolution = true
 skip-lint = false
 
 [programs.localnet]
-anchor_project = "9t6qyxcLsgbHModsUYPMELg75FzqhunaWu98sLaRBwBs"
+notes_app = "FchaqsnrXy4NyEZ1ddpkz1MNVnMo1pStEro3Jak9zvLk"
+
+[programs.devnet]
+notes_app = "FchaqsnrXy4NyEZ1ddpkz1MNVnMo1pStEro3Jak9zvLk"
 
 [registry]
 url = "https://api.apr.dev"
