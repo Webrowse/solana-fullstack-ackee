@@ -21,6 +21,7 @@ export default function NotesApp() {
   const [loading, setLoading] = useState(false);
   const [newNoteContent, setNewNoteContent] = useState('');
   const [editingNote, setEditingNote] = useState<{ id: number; content: string } | null>(null);
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
   // Fetch all notes
   const fetchNotes = async () => {
@@ -177,6 +178,21 @@ export default function NotesApp() {
     }
   }, [wallet.publicKey]);
 
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
+    if (savedTheme) {
+      setTheme(savedTheme);
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+  };
+
   return (
     <div className="app-wrapper">
       {/* Header */}
@@ -184,7 +200,12 @@ export default function NotesApp() {
         <div className="container">
           <div className="header-content">
             <div className="app-title">Solana Notes</div>
-            <WalletMultiButton />
+            <div className="header-right">
+              <button className="theme-toggle" onClick={toggleTheme}>
+                {theme === 'light' ? '🌙 Dark' : '☀️ Light'}
+              </button>
+              <WalletMultiButton />
+            </div>
           </div>
         </div>
       </header>
