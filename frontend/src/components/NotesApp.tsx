@@ -21,11 +21,13 @@ export default function NotesApp() {
   const [loading, setLoading] = useState(false);
   const [newNoteContent, setNewNoteContent] = useState('');
   const [editingNote, setEditingNote] = useState<{ id: number; content: string } | null>(null);
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const MAX_NOTE_LENGTH = 975; // Updated from 1000 to 975 to match transaction limit
 
   // Fetch all notes
   const fetchNotes = async () => {
     if (!wallet.publicKey || !wallet.signTransaction) return;
-    
+
     setLoading(true);
     try {
       const program = getProgram(connection, wallet as AnchorWallet);
@@ -57,7 +59,7 @@ export default function NotesApp() {
   // Get next note ID
   const getNextNoteId = (): number => {
     if (notes.length === 0) return 0;
-    return Math.max(...notes.map(n => n.noteId)) + 1;
+    return Math.max(...notes.map((n) => n.noteId)) + 1;
   };
 
   // Create note
@@ -68,7 +70,7 @@ export default function NotesApp() {
     try {
       const program = getProgram(connection, wallet as AnchorWallet);
       const noteId = getNextNoteId();
-      
+
       const [notePDA] = PublicKey.findProgramAddressSync(
         [
           Buffer.from('note'),
@@ -103,7 +105,7 @@ export default function NotesApp() {
     setLoading(true);
     try {
       const program = getProgram(connection, wallet as AnchorWallet);
-      
+
       const [notePDA] = PublicKey.findProgramAddressSync(
         [
           Buffer.from('note'),
@@ -140,7 +142,7 @@ export default function NotesApp() {
     setLoading(true);
     try {
       const program = getProgram(connection, wallet as AnchorWallet);
-      
+
       const [notePDA] = PublicKey.findProgramAddressSync(
         [
           Buffer.from('note'),
@@ -177,114 +179,157 @@ export default function NotesApp() {
     }
   }, [wallet.publicKey]);
 
-  return (
-    <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
-      <h1>Solana Notes App</h1>
-      
-      <div style={{ marginBottom: '20px' }}>
-        <WalletMultiButton />
-      </div>
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
+    if (savedTheme) {
+      setTheme(savedTheme);
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    }
+  }, []);
 
-      {wallet.connected && (
-        <>
-          {/* Create Note */}
-          <div style={{ marginBottom: '30px' }}>
-            <h2>Create New Note</h2>
-            <textarea
-              value={newNoteContent}
-              onChange={(e) => setNewNoteContent(e.target.value)}
-              placeholder="Write your note here..."
-              style={{ width: '100%', minHeight: '100px', padding: '10px' }}
-              maxLength={1000}
-            />
-            <div style={{ marginTop: '10px' }}>
-              <button onClick={createNote} disabled={loading || !newNoteContent.trim()}>
-                {loading ? 'Creating...' : 'Create Note'}
+  const toggleTheme = () => {
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+  };
+
+  return (
+    <div className="app-wrapper">
+      {/* Header */}
+      <header className="app-header">
+        <div className="container">
+          <div className="header-content">
+            <div className="app-title">Solana Notes</div>
+            <div className="header-right">
+              <button className="theme-toggle" onClick={toggleTheme}>
+                {theme === 'light' ? '🌙 Dark' : '☀️ Light'}
               </button>
-              <span style={{ marginLeft: '10px', color: '#666' }}>
-                {newNoteContent.length}/1000
-              </span>
+              <WalletMultiButton />
             </div>
           </div>
+        </div>
+      </header>
 
-          {/* Notes List */}
-          <div>
-            <h2>Your Notes ({notes.length})</h2>
-            {loading && <p>Loading...</p>}
-            {notes.length === 0 && !loading && <p>No notes yet. Create your first note!</p>}
-            
-            {notes.map((note) => (
-              <div
-                key={note.publicKey}
-                style={{
-                  border: '1px solid #ccc',
-                  padding: '15px',
-                  marginBottom: '15px',
-                  borderRadius: '5px',
-                }}
-              >
-                {editingNote?.id === note.noteId ? (
-                  <>
-                    <textarea
-                      value={editingNote.content}
-                      onChange={(e) =>
-                        setEditingNote({ ...editingNote, content: e.target.value })
-                      }
-                      style={{ width: '100%', minHeight: '80px', padding: '10px' }}
-                      maxLength={1000}
-                    />
-                    <div style={{ marginTop: '10px' }}>
-                      <button
-                        onClick={() => updateNote(note.noteId, editingNote.content)}
-                        disabled={loading}
-                      >
-                        Save
-                      </button>
-                      <button
-                        onClick={() => setEditingNote(null)}
-                        style={{ marginLeft: '10px' }}
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <p style={{ whiteSpace: 'pre-wrap' }}>{note.content}</p>
-                    <div style={{ fontSize: '12px', color: '#666', marginTop: '10px' }}>
-                      <div>Created: {note.createdAt.toLocaleString()}</div>
-                      <div>Updated: {note.updatedAt.toLocaleString()}</div>
-                    </div>
-                    <div style={{ marginTop: '10px' }}>
-                      <button
-                        onClick={() =>
-                          setEditingNote({ id: note.noteId, content: note.content })
-                        }
-                        disabled={loading}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => deleteNote(note.noteId)}
-                        disabled={loading}
-                        style={{ marginLeft: '10px', background: '#dc3545', color: 'white' }}
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </>
+      {/* Main Content */}
+      <main className="container">
+        {wallet.connected ? (
+          <div className="main-content">
+            {/* Create Note Panel */}
+            <div className="notes-container" style={{ maxWidth: '400px' }}>
+              <div className="create-section">
+                <h2>Create Note</h2>
+                <div className="textarea-wrapper">
+                  <textarea
+                    value={newNoteContent}
+                    onChange={(e) => setNewNoteContent(e.target.value)}
+                    placeholder="Write your thoughts, ideas, or reminders here..."
+                    maxLength={MAX_NOTE_LENGTH}
+                  />
+                  <div className="char-counter">{newNoteContent.length} / {MAX_NOTE_LENGTH}</div>
+                </div>
+                <button
+                  className="btn-primary"
+                  onClick={createNote}
+                  disabled={loading || !newNoteContent.trim()}
+                  style={{ width: '100%' }}
+                >
+                  {loading ? 'Creating...' : 'Create Note'}
+                </button>
+              </div>
+            </div>
+
+            {/* Notes List */}
+            <div className="notes-container" style={{ flex: 1 }}>
+              <div className="notes-section">
+                <h2>
+                  Your Notes <span className="notes-count">({notes.length})</span>
+                </h2>
+
+                {loading && notes.length === 0 && (
+                  <div className="loading-state">Loading your notes...</div>
+                )}
+
+                {!loading && notes.length === 0 && (
+                  <div className="empty-state">
+                    No notes yet. Create your first note to get started!
+                  </div>
+                )}
+
+                {notes.length > 0 && (
+                  <div className="notes-grid">
+                    {notes.map((note) => (
+                      <div key={note.noteId} className="note-card">
+                        {editingNote?.id === note.noteId ? (
+                          <div className="note-edit-mode">
+                            <textarea
+                              value={editingNote.content}
+                              onChange={(e) =>
+                                setEditingNote({ ...editingNote, content: e.target.value })
+                              }
+                              maxLength={MAX_NOTE_LENGTH}
+                            />
+                            <div className="edit-actions">
+                              <button
+                                className="btn-primary"
+                                onClick={() => updateNote(note.noteId, editingNote.content)}
+                                disabled={loading}
+                              >
+                                Save
+                              </button>
+                              <button
+                                className="btn-secondary"
+                                onClick={() => setEditingNote(null)}
+                                disabled={loading}
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="note-content">{note.content}</div>
+                            <div className="note-dates">
+                              <span>Created: {note.createdAt.toLocaleString()}</span>
+                              <span>Updated: {note.updatedAt.toLocaleString()}</span>
+                            </div>
+                            <div className="note-actions">
+                              <button
+                                className="btn-secondary"
+                                onClick={() =>
+                                  setEditingNote({ id: note.noteId, content: note.content })
+                                }
+                                disabled={loading}
+                              >
+                                Edit
+                              </button>
+                              <button
+                                className="btn-danger"
+                                onClick={() => deleteNote(note.noteId)}
+                                disabled={loading}
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
-            ))}
+            </div>
           </div>
-        </>
-      )}
-
-      {!wallet.connected && (
-        <p style={{ textAlign: 'center', marginTop: '50px' }}>
-          Please connect your wallet to view and manage notes
-        </p>
-      )}
+        ) : (
+          <div className="wallet-state">
+            <div className="wallet-prompt">
+              <h2>Connect Your Wallet</h2>
+              <p>Connect your Solana wallet to view and manage your decentralized notes securely on the blockchain.</p>
+              <WalletMultiButton />
+            </div>
+          </div>
+        )}
+      </main>
     </div>
   );
 }
