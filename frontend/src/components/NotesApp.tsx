@@ -22,6 +22,7 @@ export default function NotesApp() {
   const [newNoteContent, setNewNoteContent] = useState('');
   const [editingNote, setEditingNote] = useState<{ id: number; content: string } | null>(null);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const MAX_NOTE_LENGTH = 975; // Updated from 1000 to 975 to match transaction limit
 
   // Fetch all notes
   const fetchNotes = async () => {
@@ -223,9 +224,9 @@ export default function NotesApp() {
                     value={newNoteContent}
                     onChange={(e) => setNewNoteContent(e.target.value)}
                     placeholder="Write your thoughts, ideas, or reminders here..."
-                    maxLength={1000}
+                    maxLength={MAX_NOTE_LENGTH}
                   />
-                  <div className="char-counter">{newNoteContent.length} / 1000</div>
+                  <div className="char-counter">{newNoteContent.length} / {MAX_NOTE_LENGTH}</div>
                 </div>
                 <button
                   className="btn-primary"
@@ -266,7 +267,7 @@ export default function NotesApp() {
                               onChange={(e) =>
                                 setEditingNote({ ...editingNote, content: e.target.value })
                               }
-                              maxLength={1000}
+                              maxLength={MAX_NOTE_LENGTH}
                             />
                             <div className="edit-actions">
                               <button
