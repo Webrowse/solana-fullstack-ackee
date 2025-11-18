@@ -1,21 +1,3 @@
-// #[derive(Accounts)]
-// #[instruction(content: String, note_id: u64)]
-// pub struct CreateNote<'info> {
-//     #[account(
-//         init,
-//         payer = user,
-//         space = 8 + Note::INIT_SPACE,
-//         seeds = [b"note", user.key().as_ref(), note_id.to_le_bytes().as_ref()],
-//         bump
-//     )]
-//     pub note: Account<'info, Note>,
-    
-//     #[account(mut)]
-//     pub user: Signer<'info>,
-    
-//     pub system_program: Program<'info, System>,
-// }
-
 use anchor_lang::prelude::*;
 use crate::{state::Note, errors::NotesError};
 
